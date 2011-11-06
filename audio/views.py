@@ -12,7 +12,7 @@ def scan_media(request):
 
 def list_songs(request):
     response = HttpResponse()
-    songs = Song.objects.all()
+    songs = Song.objects.all()[:500]
     return render_to_response(
         "library.html",
         {"songs": songs, "count": songs.count()}

@@ -2,6 +2,7 @@
 <html>
 <head>
 <title></title>
+<link href='http://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700' rel='stylesheet' type='text/css'>
 <style>
 html,
 body {
@@ -11,10 +12,34 @@ body {
 body {
     background: #181818;
     color: #cce1e9;
-    font-family: sans-serif;
+    font-family: 'PT Sans Narrow', sans-serif;
 }
-#header tr.even {
+#library,
+#library tr,
+#library td {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 0 none;
+}
+#library tr.even {
     background: #303030;
+}
+#library tr:hover {
+    background: #4a4949;
+}
+#library tr.playing {
+    background: #45677c;
+}
+#library td {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    /*cursor: pointer;*/
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
 }
 a:link,
 a:visited,
@@ -35,6 +60,7 @@ a:hover {
     padding: 0.2em 0 0 0.2em;
 }
 #header th {
+    text-align: left;
     background: #45484d; /* Old browsers */
     background: -moz-linear-gradient(top, #45484d 0%, #000000 100%); /* FF3.6+ */
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#45484d), color-stop(100%,#000000)); /* Chrome,Safari4+ */
@@ -44,16 +70,47 @@ a:hover {
     background: linear-gradient(top, #45484d 0%,#000000 100%); /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#45484d', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
 }
+#header th:hover {
+    text-align: left;
+    background: #6f7174; /* Old browsers */
+    background: -moz-linear-gradient(top, #6f7174 0%, #000000 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#6f7174), color-stop(100%,#000000)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, #6f7174 0%,#000000 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #6f7174 0%,#000000 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, #6f7174 0%,#000000 100%); /* IE10+ */
+    background: linear-gradient(top, #6f7174 0%,#000000 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6f7174', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+}
+#header th,
+#library td {
+    padding: 0.1em 0 0.1em 0.5em;
+}
 #library {
     padding-top: 4.2em;
 }
 </style>
 <script type="text/javascript" src="/static/js/jquery-1.7.min.js"></script>
 <script type="text/javascript">
-$.ready(function () {
-
+$(function () {
+    fix_column_widths();
+    window.setTimeout(fix_column_widths, 500);
+    $(window).resize(fix_column_widths);
+    $("#header th").click(function () {
+        
+    });
 });
-function play_song(id) {
+function fix_column_widths() {
+    var column_widths = [];
+    $("#library tr:first td").each(function (i, td) {
+        column_widths.push($(td).width());
+    });
+    $("#header th").each(function (i, th) {
+        $(th).width(column_widths.shift());
+    })
+}
+function play_song(id, el) {
+    $("#library tr.playing").removeClass("playing");
+    $(el).addClass("playing");
     var url = "{% url audio.views.stream_song "0" %}".replace("0", id);
     $("#player").attr("src", url);
     document.getElementById("player").play();
@@ -66,7 +123,7 @@ function play_song(id) {
             <source src="" />
         </audio>
         <h4 style="display: inline">{{ count }} songs</h4>
-        <table width="100%">
+        <table width="100%" cellspacing="0" cellpadding="0">
             <thead style="font-weight: bold">
                 <tr>
                     <th>Title</th>
@@ -78,10 +135,9 @@ function play_song(id) {
         </table>
     </div>
     <div id="library">
-        <table width="100%">
+        <table width="100%" cellspacing="0" cellpadding="0">
             {% for song in songs %}
-            <tr class="{% cycle "odd" "even" %}">
-                <td><a href="javascript:play_song({{ song.id }})">Play</a></td>
+            <tr class="{% cycle "odd" "even" %}" ondblclick="play_song({{ song.id }}, this)">
                 <td>{{ song.title }}</td>
                 <td>{{ song.artist }}</td>
                 <td>{{ song.album }}</td>
