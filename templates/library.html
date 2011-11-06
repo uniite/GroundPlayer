@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<style>
+html,
+body {
+    padding:  0;
+    margin:  0;
+}
+body {
+    background: #181818;
+    color: #cce1e9;
+    font-family: sans-serif;
+}
+#header tr.even {
+    background: #303030;
+}
+a:link,
+a:visited,
+a:active {
+    color: #68caf0;
+    text-decoration: none;
+}
+a:hover {
+    color: #ddb653;
+}
+#header {
+    width: 100%;
+    height: 4.2em;
+    position: fixed;
+    background: #181818;
+}
+#header audio {
+    padding: 0.2em 0 0 0.2em;
+}
+#header th {
+    background: #45484d; /* Old browsers */
+    background: -moz-linear-gradient(top, #45484d 0%, #000000 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#45484d), color-stop(100%,#000000)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, #45484d 0%,#000000 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #45484d 0%,#000000 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, #45484d 0%,#000000 100%); /* IE10+ */
+    background: linear-gradient(top, #45484d 0%,#000000 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#45484d', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+}
+#library {
+    padding-top: 4.2em;
+}
+</style>
+<script type="text/javascript" src="/static/js/jquery-1.7.min.js"></script>
+<script type="text/javascript">
+$.ready(function () {
+
+});
+function play_song(id) {
+    var url = "{% url audio.views.stream_song "0" %}".replace("0", id);
+    $("#player").attr("src", url);
+    document.getElementById("player").play();
+}
+</script>
+</head>
+<body>
+    <div id="header">
+        <audio id="player" controls="controls">
+            <source src="" />
+        </audio>
+        <h4 style="display: inline">{{ count }} songs</h4>
+        <table width="100%">
+            <thead style="font-weight: bold">
+                <tr>
+                    <th>Title</th>
+                    <th>Artist</th>
+                    <th>Album</th>
+                    <th>Bitrate</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div id="library">
+        <table width="100%">
+            {% for song in songs %}
+            <tr class="{% cycle "odd" "even" %}">
+                <td><a href="javascript:play_song({{ song.id }})">Play</a></td>
+                <td>{{ song.title }}</td>
+                <td>{{ song.artist }}</td>
+                <td>{{ song.album }}</td>
+                <td>{{ song.bitrate }}Kbps</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>
