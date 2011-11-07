@@ -225,7 +225,6 @@ function load_song_list() {
         }
 
         load_song_count();
-        current_playlist = create_sequential_playlist();
     }, "json");
 }
 function render_song_list(start_index, min_end_index) {
@@ -383,6 +382,7 @@ function play_song(id) {
     $("#now_playing").html(song.title + " - " + song.artist).click(function () {
         view_now_playing();
     });
+    current_playlist = create_sequential_playlist();
 }
 </script>
 </head>
