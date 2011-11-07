@@ -159,3 +159,7 @@ CACHES = {
 import djcelery
 djcelery.setup_loader()
 BROKER_TRANSPORT = "django"
+
+# Where all the music is stored (for local scanning purposes)
+MEDIA_SCAN_PATH = "U:\\Music\\"
+

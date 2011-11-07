@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.shortcuts import render, render_to_response, get_object_or_404, redirect
+from ground_player.settings import MEDIA_SCAN_PATH
 import ujson
 from models import Song
 from tasks import ScanMediaTask
@@ -9,7 +10,7 @@ import os
 
 
 def scan_media(request):
-    ScanMediaTask.delay(r"U:\Music")
+    ScanMediaTask.delay(MEDIA_SCAN_PATH)
     return HttpResponse("Started")
 
 def library(request):
@@ -73,7 +74,7 @@ def play_song(request, id):
 
 def stream_song(request, id):
     song = get_object_or_404(Song, pk=id)
-    url = "/".join(song.file_path.replace("U:\\Music\\", "").split(os.path.sep))
+    url = "/".join(song.file_path.replace(MEDIA_SCAN_PATH, "").split(os.path.sep))
     # For this to work, you have to run:
     #   find -name *\.flac -exec flac -d {} \;
     # on your music folder (ie. make WAV copies of all the FLACs)
