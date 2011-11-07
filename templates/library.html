@@ -258,7 +258,7 @@ function render_song_list(start_index, min_end_index) {
     fix_column_widths();
 
     $("tr", library).click(function () {
-        play_song(this.id, this);
+        play_song(this.id);
     });
 }
 function normalize_column_name(name) {
@@ -369,6 +369,8 @@ function advance_playlist(value) {
     play_song(current_playlist[get_playlist_index(now_playing[0]) + value], true);
 }
 function play_song(id, same_playlist) {
+    if (current_playlist === undefined || !same_playlist)
+        current_playlist = create_sequential_playlist();
     if (now_playing) {
         $("#library #" + now_playing[0]).removeClass("playing");
     }
@@ -382,8 +384,6 @@ function play_song(id, same_playlist) {
     $("#now_playing").html(song.title + " - " + song.artist).click(function () {
         view_now_playing();
     });
-    if (!same_playlist)
-        current_playlist = create_sequential_playlist();
 }
 </script>
 </head>
