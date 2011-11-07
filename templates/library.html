@@ -107,8 +107,7 @@ a:hover {
     text-align: center;
 }
 </style>
-<script type="text/javascript" src="/static/js/jquery-1.6.2.min.js"></script>
-<!--<script type="text/javascript" src="/static/js/jquery-ui-1.8.16.custom.min.js"></script>-->
+<script type="text/javascript" src="/static/js/jquery-1.7.min.js"></script>
 <script type="text/javascript">
 var html5_audio_player;
 var song_data;
@@ -116,6 +115,7 @@ var search_index;
 var search_column = 2;
 $(function () {
     html5_audio_player = document.getElementById("player");
+    html5_audio_player.addEventListener("ended", play_next_song);
     $("#header th").addClass("ui-state-default").hover(
         function () { $(this).addClass("ui-state-hover") },
         function () { $(this).removeClass("ui-state-hover") }
@@ -186,7 +186,6 @@ function update_search(text) {
     }
 }
 function view_now_playing() {
-    console.log(now_playing[0]);
     render_song_list(now_playing[1], now_playing[2]);
     $("#library #" + now_playing[0]).addClass("playing");
 }
@@ -220,6 +219,7 @@ function load_song_list(sort) {
         }
 
         load_song_count();
+        current_playlist = create_sequential_playlist();
     }, "json");
 }
 function render_song_list(start_index, min_end_index) {
@@ -305,17 +305,73 @@ function get_song(id) {
     return song
 }
 
-function play_song(id, el) {
+function get_song_index(id) {
+    var song = {};
+    for (var i = 0; i < song_data.rows.length; i++) {
+        if (song_data.rows[i][0] == id) {
+            return i;
+        }
+    }
+}
+
+function get_playlist_index(id) {
+    var song = {};
+    for (var i = 0; i < current_playlist.length; i++) {
+        if (current_playlist[i] == id) {
+            return i;
+        }
+    }
+}
+
+var current_playlist;
+var shuffled_playlist = null;
+function toggle_shuffle() {
+    if (shuffled_playlist) {
+        shuffled_playlist = undefined;
+        current_playlist = create_sequential_playlist();
+        $("#shuffle_status").html("Shuffle is Off");
+    } else {
+        var playlist = create_sequential_playlist();
+        shuffled_playlist = [];
+        while (playlist.length > 0) {
+            var choice = Math.random() * playlist.length;
+            shuffled_playlist.push(playlist.splice(choice, 1)[0]);
+        }
+        current_playlist = shuffled_playlist;
+        $("#shuffle_status").html("Shuffle is On");
+    }
+}
+
+function create_sequential_playlist() {
+    playlist = [];
+    for (var i = 0; i < song_data.rows.length; i++) {
+        playlist.push(song_data.rows[i][0]);
+    }
+    return playlist;
+}
+
+function play_prev_song() {
+    advance_playlist(-1);
+}
+function play_next_song() {
+    advance_playlist(1);
+}
+function advance_playlist(value) {
+    play_song(current_playlist[get_playlist_index(now_playing[0]) + value]);
+}
+function play_song(id) {
     if (now_playing) {
         $("#library #" + now_playing[0]).removeClass("playing");
     }
-    $(el).addClass("playing");
+    $("#library #" + id).addClass("playing");
     var url = "{% url audio.views.stream_song "0" %}".replace("0", id);
     html5_audio_player.setAttribute("src", url);
     html5_audio_player.play();
-    var song = get_song(parseInt(el.id));
+    var song = get_song(id);
     now_playing = [id, current_bounds[0], current_bounds[1]];
-    $("#now_playing").html(song.title + " - " + song.artist).click(view_now_playing);
+    $("#now_playing").html(song.title + " - " + song.artist).click(function () {
+        view_now_playing();
+    });
 }
 </script>
 </head>
@@ -324,6 +380,13 @@ function play_song(id, el) {
         <audio id="player" controls="controls">
             <source src="" />
         </audio>
+        &nbsp;
+        <a id="shuffle_status" href="javascript:toggle_shuffle()">Shuffle is Off</a>
+        &nbsp;
+        <a href="javascript:play_prev_song()">Prev</a>
+        &nbsp;
+        <a href="javascript:play_next_song()">Next</a>
+        &nbsp;
         <h4 id="song_count" style="display: inline">
             <span class="number"></span>
             <span class="suffix">Loading...</span>
