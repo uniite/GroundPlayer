@@ -1,0 +1,16 @@
+<table width="100%" cellspacing="0" cellpadding="0">
+    <colgroup>
+        <col width="30%">
+        <col width="30%">
+        <col width="30%">
+        <col width="10%">
+    </colgroup>
+    {% for song in songs %}
+    <tr id="{{ song.id }}">
+        <td>{{ song.title }}</td>
+        <td>{{ song.artist }}</td>
+        <td>{{ song.album }}</td>
+        <td>{{ song.bitrate }}Kbps</td>
+    </tr>
+    {% endfor %}
+</table>

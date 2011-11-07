@@ -7,6 +7,12 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^scan/?$', 'audio.views.scan_media'),
+
+    url(r'^library/?$', 'audio.views.library'),
+
+    url(r'^api/songs/count/?$', 'audio.views.api_songs_count'),
+    url(r'^api/songs/list/?$', 'audio.views.api_songs_list'),
+
     url(r'^songs/?$', 'audio.views.list_songs'),
     url(r'^songs/delete/?$', 'audio.views.delete_songs'),
     url(r'^songs/(\d+)/play/?$', 'audio.views.play_song'),

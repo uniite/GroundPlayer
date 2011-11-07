@@ -148,6 +148,13 @@ LOGGING = {
     }
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": here("cache"),
+    }
+}
+
 # Celery
 import djcelery
 djcelery.setup_loader()

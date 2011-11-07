@@ -2,7 +2,8 @@
 <html>
 <head>
 <title></title>
-<link href='http://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700' rel='stylesheet' type='text/css'>
+<link href="http://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700" rel="stylesheet" type="text/css">
+<link href="/static/css/custom-theme/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css">
 <style>
 html,
 body {
@@ -12,35 +13,58 @@ body {
 body {
     background: #181818;
     color: #cce1e9;
-    font-family: 'PT Sans Narrow', sans-serif;
+    font-family: "PT Sans Narrow", sans-serif;
+    /*-webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;*/
+    overflow-y: scroll;
 }
-#library,
-#library tr,
-#library td {
+#header table {
+    table-layout: fixed;
+}
+#header th {
+    text-align: left;
+    passing: 0 0.4em;
+    font-weight: bold;
+}
+/*#header th:hover {
+    opacity: 1.0;
+}*/
+/*#header th.pressed {
+    opacity: 0.7;
+    font-color: white;
+}*/
+#header th .icon {
+    float: right;
+}
+#header th.sort-asc {
+
+}
+#header th.sort-desc {
+
+}
+#library table {
     border-collapse: collapse;
     border-spacing: 0;
     border: 0 none;
+    /*table-layout: fixed;*/
 }
-#library tr.even {
+/*#library tr.even {
     background: #303030;
-}
+}*/
 #library tr:hover {
     background: #4a4949;
 }
 #library tr.playing {
-    background: #45677c;
+    background: #4a4949;
 }
-#library td {
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-    /*cursor: pointer;*/
+/*#library td {
     margin: 0;
     padding: 0;
     border-collapse: collapse;
-}
+}*/
 a:link,
 a:visited,
 a:active {
@@ -52,35 +76,16 @@ a:hover {
 }
 #header {
     width: 100%;
-    height: 4.2em;
+    height: 4em;
     position: fixed;
+    top: 0;
     background: #181818;
+    z-index: 10;
 }
 #header audio {
     padding: 0.2em 0 0 0.2em;
 }
-#header th {
-    text-align: left;
-    background: #45484d; /* Old browsers */
-    background: -moz-linear-gradient(top, #45484d 0%, #000000 100%); /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#45484d), color-stop(100%,#000000)); /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(top, #45484d 0%,#000000 100%); /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient(top, #45484d 0%,#000000 100%); /* Opera 11.10+ */
-    background: -ms-linear-gradient(top, #45484d 0%,#000000 100%); /* IE10+ */
-    background: linear-gradient(top, #45484d 0%,#000000 100%); /* W3C */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#45484d', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
-}
-#header th:hover {
-    text-align: left;
-    background: #6f7174; /* Old browsers */
-    background: -moz-linear-gradient(top, #6f7174 0%, #000000 100%); /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#6f7174), color-stop(100%,#000000)); /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(top, #6f7174 0%,#000000 100%); /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient(top, #6f7174 0%,#000000 100%); /* Opera 11.10+ */
-    background: -ms-linear-gradient(top, #6f7174 0%,#000000 100%); /* IE10+ */
-    background: linear-gradient(top, #6f7174 0%,#000000 100%); /* W3C */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6f7174', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
-}
+
 #header th,
 #library td {
     padding: 0.1em 0 0.1em 0.5em;
@@ -88,17 +93,195 @@ a:hover {
 #library {
     padding-top: 4.2em;
 }
+#search {
+    font-weight: bold;
+    font-size: 1.5em;
+    float: right;
+}
+#search_completion {
+    opacity: 0.8;
+}
+#now_playing {
+    font-size: 1.5em;
+    display: inline;
+    text-align: center;
+}
 </style>
-<script type="text/javascript" src="/static/js/jquery-1.7.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery-1.6.2.min.js"></script>
+<!--<script type="text/javascript" src="/static/js/jquery-ui-1.8.16.custom.min.js"></script>-->
 <script type="text/javascript">
+var html5_audio_player;
+var song_data;
+var search_index;
+var search_column = 2;
 $(function () {
-    fix_column_widths();
-    window.setTimeout(fix_column_widths, 500);
+    html5_audio_player = document.getElementById("player");
+    $("#header th").addClass("ui-state-default").hover(
+        function () { $(this).addClass("ui-state-hover") },
+        function () { $(this).removeClass("ui-state-hover") }
+    ).click(function () {
+        if ($(this).hasClass("sort-asc")) {
+            sort_column(this, "desc");
+        } else if ($(this).hasClass("sort-desc")) {
+            sort_column(this, "none");
+        } else {
+            // Make sure no other columns are sorted
+            $("#header th.sorted").each(function (i, th) {
+               sort_column(th, "none");
+            });
+            sort_column(this, "asc");
+        }
+    }).each(function (i, th) {
+        $(th).attr("title", $(th).text());
+    });
     $(window).resize(fix_column_widths);
-    $("#header th").click(function () {
-        
+    load_song_list();
+
+    $(document).keydown(function (e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        update_search(String.fromCharCode(code));
+        if (search_timeout) {
+            clearTimeout(search_timeout);
+        }
+        search_timeout = setTimeout(search_clear, 1000);
     });
 });
+var search_timeout;
+var current_search = "";
+var now_playing;
+var current_bounds;
+function update_search(text) {
+    current_search += text;
+    var match_start_row;
+    var match_end_row;
+    var match_index = {};
+    var match_index_length = 0;
+    for (var key in search_index) {
+        var item = key.toUpperCase();
+        if (item.indexOf(current_search) == 0) {
+            var result = search_index[key];
+            match_index[key] = result
+            match_index_length += 1;
+            if (match_start_row === undefined) {
+                match_start_row = result[0]
+            }
+            match_end_row = result[result.length - 1];
+        } else if (match_end_row !== undefined) {
+            break;
+        }
+    }
+    if (match_index_length > 2) {
+        match_end_row = Math.min(match_end_row, match_start_row + 100);
+    }
+    if (match_start_row) {
+        var first_match = song_data["rows"][match_start_row][search_column];
+        $("#search_text").html(first_match.substr(0, current_search.length));
+        $("#search_completion").html(
+            first_match.substr(current_search.length)
+        );
+        render_song_list(match_start_row, match_end_row);
+    } else {
+        $("#search_text").html(current_search);
+        $("#search_completion").html("");
+    }
+}
+function view_now_playing() {
+    console.log(now_playing[0]);
+    render_song_list(now_playing[1], now_playing[2]);
+    $("#library #" + now_playing[0]).addClass("playing");
+}
+function search_clear() {
+    $("#search_text").html("");
+    $("#search_completion").html("");
+    current_search = "";
+}
+function load_song_count() {
+    $("#song_count .number").load("/api/songs/count/", function () {
+        $("#song_count .suffix").html("songs");
+    });
+}
+function load_song_list(sort) {
+    var params = sort ? "?sort=" + sort : "";
+    load_song_count();
+    $.get("/api/songs/list/", function (data) {
+        var library = $("#library table");
+        song_data = data;
+
+        render_song_list();
+
+        search_index = {};
+        for (var i = 0; i < song_data["rows"].length; i++) {
+            var item = song_data["rows"][i][search_column];
+            if (search_index[item] === undefined) {
+                search_index[item] = [i]
+            } else {
+                search_index[item].push(i);
+            }
+        }
+
+        load_song_count();
+    }, "json");
+}
+function render_song_list(start_index, min_end_index) {
+    var song_list = song_data["rows"];
+    var library = $("#library table").html("");
+
+    if (start_index === undefined)
+        start_index = 0;
+    if (min_end_index === undefined)
+        min_end_index = 0;
+
+    for (var i = start_index; i < song_list.length; i++) {
+        var html = "";
+        var song = song_list[i];
+
+        html += "<tr id=" + song[0] + ">";
+        for (var j = 1; j < song.length; j++) {
+            html += "<td>" + song[j] + "</td>";
+        }
+        html += "</tr>";
+
+        library.append(html);
+        if (library.height() > $(window).height() && i >= min_end_index) {
+            min_end_index = i;
+            //$("tr:last", library).remove();
+            current_bounds = [start_index, min_end_index];
+            break;
+        }
+    }
+
+    fix_column_widths();
+
+    $("tr", library).click(function () {
+        play_song(this.id, this);
+    });
+}
+function normalize_column_name(name) {
+    return name.toLowerCase().replace(" ", "_");
+}
+function sort_column(th, direction) {
+    if (direction == "none") {
+        load_song_list();
+        $(th).removeClass("sorted")
+             .removeClass("sort-asc")
+             .removeClass("sort-desc")
+             .removeClass("ui-state-active")
+             .html($(th).attr("title"));
+    } else {
+        $(th).addClass("sorted")
+              .addClass("ui-state-active");
+        if (direction == "asc") {
+            load_song_list(normalize_column_name($(th).attr("title")));
+            $(th).addClass("sort-asc")
+                 .html($(th).attr("title") + "<div class=icon>&#9650;</div>");
+        } else if (direction == "desc") {
+            load_song_list(normalize_column_name("-" +$(th).attr("title")));
+            $(th).removeClass("sort-asc")
+                 .addClass("sort-desc")
+                 .html($(th).attr("title") + "<div class=icon>&#9660;</div>");
+        }
+    }
+}
 function fix_column_widths() {
     var column_widths = [];
     $("#library tr:first td").each(function (i, td) {
@@ -106,14 +289,33 @@ function fix_column_widths() {
     });
     $("#header th").each(function (i, th) {
         $(th).width(column_widths.shift());
+
     })
 }
+function get_song(id) {
+    var song = {};
+    for (var i = 0; i < song_data.rows.length; i++) {
+        if (song_data.rows[i][0] == id) {
+            for (var j = 0; j < song_data.columns.length; j++) {
+                song[song_data.columns[j]] = song_data.rows[i][j];
+            }
+            break;
+        }
+    }
+    return song
+}
+
 function play_song(id, el) {
-    $("#library tr.playing").removeClass("playing");
+    if (now_playing) {
+        $("#library #" + now_playing[0]).removeClass("playing");
+    }
     $(el).addClass("playing");
     var url = "{% url audio.views.stream_song "0" %}".replace("0", id);
-    $("#player").attr("src", url);
-    document.getElementById("player").play();
+    html5_audio_player.setAttribute("src", url);
+    html5_audio_player.play();
+    var song = get_song(parseInt(el.id));
+    now_playing = [id, current_bounds[0], current_bounds[1]];
+    $("#now_playing").html(song.title + " - " + song.artist).click(view_now_playing);
 }
 </script>
 </head>
@@ -122,7 +324,17 @@ function play_song(id, el) {
         <audio id="player" controls="controls">
             <source src="" />
         </audio>
-        <h4 style="display: inline">{{ count }} songs</h4>
+        <h4 id="song_count" style="display: inline">
+            <span class="number"></span>
+            <span class="suffix">Loading...</span>
+            &nbsp;
+            &nbsp;
+            &nbsp;
+        </h4>
+        <div id="now_playing"></div>
+        <span id="search">
+            <span id="search_text"></span><span id="search_completion"></span>
+        </span>
         <table width="100%" cellspacing="0" cellpadding="0">
             <thead style="font-weight: bold">
                 <tr>
@@ -135,15 +347,8 @@ function play_song(id, el) {
         </table>
     </div>
     <div id="library">
-        <table width="100%" cellspacing="0" cellpadding="0">
-            {% for song in songs %}
-            <tr class="{% cycle "odd" "even" %}" ondblclick="play_song({{ song.id }}, this)">
-                <td>{{ song.title }}</td>
-                <td>{{ song.artist }}</td>
-                <td>{{ song.album }}</td>
-                <td>{{ song.bitrate }}Kbps</td>
-            </tr>
-            {% endfor %}
+        <table width="100%">
+            
         </table>
     </div>
 </body>
