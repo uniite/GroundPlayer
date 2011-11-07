@@ -366,9 +366,9 @@ function play_next_song() {
     advance_playlist(1);
 }
 function advance_playlist(value) {
-    play_song(current_playlist[get_playlist_index(now_playing[0]) + value]);
+    play_song(current_playlist[get_playlist_index(now_playing[0]) + value], true);
 }
-function play_song(id) {
+function play_song(id, same_playlist) {
     if (now_playing) {
         $("#library #" + now_playing[0]).removeClass("playing");
     }
@@ -382,7 +382,8 @@ function play_song(id) {
     $("#now_playing").html(song.title + " - " + song.artist).click(function () {
         view_now_playing();
     });
-    current_playlist = create_sequential_playlist();
+    if (!same_playlist)
+        current_playlist = create_sequential_playlist();
 }
 </script>
 </head>
