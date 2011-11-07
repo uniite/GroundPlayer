@@ -41,7 +41,10 @@ def list_songs(request):
         return HttpResponse(content)
 
 def api_songs_list(request):
-    query = Song.objects.all().exclude(title="").order_by("artist")
+    query = Song.objects.all()
+    if "sort" in request.GET:
+        sort = request.GET["sort"]
+        query = query.exclude(**{sort.replace("-", ""): ""}).order_by(sort)
     count = query.count()
     songs = []
     columns = ["title", "artist", "album", "bitrate"]
@@ -71,5 +74,5 @@ def play_song(request, id):
 def stream_song(request, id):
     song = get_object_or_404(Song, pk=id)
     url = "/".join(song.file_path.replace("U:\\Music\\", "").split(os.path.sep))
-    print url
+    url = url.replace(".flac", ".wav")
     return redirect("http://shoebox.local/music/%s" % url)

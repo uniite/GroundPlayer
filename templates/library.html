@@ -112,7 +112,9 @@ a:hover {
 var html5_audio_player;
 var song_data;
 var search_index;
-var search_column = 2;
+var sort_column_index = 2;
+var sort_column_name = "artist";
+var sort_direction = "asc";
 $(function () {
     html5_audio_player = document.getElementById("player");
     html5_audio_player.addEventListener("ended", play_next_song);
@@ -135,8 +137,11 @@ $(function () {
         $(th).attr("title", $(th).text());
     });
     $(window).resize(fix_column_widths);
-    load_song_list();
 
+    // This loads up the song list, with the default sort
+    sort_column($("th:nth-child(" + sort_column_index + ")"), sort_direction);
+
+    // Used for instant search
     $(document).keydown(function (e) {
         var code = (e.keyCode ? e.keyCode : e.which);
         update_search(String.fromCharCode(code));
@@ -174,7 +179,7 @@ function update_search(text) {
         match_end_row = Math.min(match_end_row, match_start_row + 100);
     }
     if (match_start_row) {
-        var first_match = song_data["rows"][match_start_row][search_column];
+        var first_match = song_data["rows"][match_start_row][sort_column_index];
         $("#search_text").html(first_match.substr(0, current_search.length));
         $("#search_completion").html(
             first_match.substr(current_search.length)
@@ -199,10 +204,11 @@ function load_song_count() {
         $("#song_count .suffix").html("songs");
     });
 }
-function load_song_list(sort) {
-    var params = sort ? "?sort=" + sort : "";
+function load_song_list() {
+    var sort_prefix = sort_direction == "desc" ? "-" : "";
+    var params = "?sort=" + sort_prefix + sort_column_name;
     load_song_count();
-    $.get("/api/songs/list/", function (data) {
+    $.get("/api/songs/list/" + params, function (data) {
         var library = $("#library table");
         song_data = data;
 
@@ -210,7 +216,7 @@ function load_song_list(sort) {
 
         search_index = {};
         for (var i = 0; i < song_data["rows"].length; i++) {
-            var item = song_data["rows"][i][search_column];
+            var item = song_data["rows"][i][sort_column_index];
             if (search_index[item] === undefined) {
                 search_index[item] = [i]
             } else {
@@ -260,6 +266,10 @@ function normalize_column_name(name) {
     return name.toLowerCase().replace(" ", "_");
 }
 function sort_column(th, direction) {
+    sort_column_name = normalize_column_name($(th).attr("title"));
+    if (song_data)
+        sort_column_index = song_data.columns.indexOf(sort_column_name);
+    sort_direction = direction;
     if (direction == "none") {
         load_song_list();
         $(th).removeClass("sorted")
@@ -271,11 +281,11 @@ function sort_column(th, direction) {
         $(th).addClass("sorted")
               .addClass("ui-state-active");
         if (direction == "asc") {
-            load_song_list(normalize_column_name($(th).attr("title")));
+            load_song_list();
             $(th).addClass("sort-asc")
                  .html($(th).attr("title") + "<div class=icon>&#9650;</div>");
         } else if (direction == "desc") {
-            load_song_list(normalize_column_name("-" +$(th).attr("title")));
+            load_song_list();
             $(th).removeClass("sort-asc")
                  .addClass("sort-desc")
                  .html($(th).attr("title") + "<div class=icon>&#9660;</div>");
@@ -366,6 +376,7 @@ function play_song(id) {
     $("#library #" + id).addClass("playing");
     var url = "{% url audio.views.stream_song "0" %}".replace("0", id);
     html5_audio_player.setAttribute("src", url);
+    console.log("Play " + id);
     html5_audio_player.play();
     var song = get_song(id);
     now_playing = [id, current_bounds[0], current_bounds[1]];
