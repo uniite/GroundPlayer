@@ -74,5 +74,9 @@ def play_song(request, id):
 def stream_song(request, id):
     song = get_object_or_404(Song, pk=id)
     url = "/".join(song.file_path.replace("U:\\Music\\", "").split(os.path.sep))
+    # For this to work, you have to run:
+    #   find -name *\.flac -exec flac -d {} \;
+    # on your music folder (ie. make WAV copies of all the FLACs)
+    # That way, we still get to use all the FLAC metadata
     url = url.replace(".flac", ".wav")
     return redirect("http://shoebox.local/music/%s" % url)
