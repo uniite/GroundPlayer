@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title></title>
+<title>GroundPlayer</title>
 <link href="http://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700" rel="stylesheet" type="text/css">
 <link href="/static/css/custom-theme/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css">
 <style>
@@ -389,8 +389,7 @@ function play_song(id, same_playlist) {
 </head>
 <body>
     <div id="header">
-        <audio id="player" controls="controls">
-            <source src="" />
+        <audio id="player" src="" controls reload>
         </audio>
         &nbsp;
         <a id="shuffle_status" href="javascript:toggle_shuffle()">Shuffle is Off</a>
