@@ -115,6 +115,7 @@ var search_index;
 var sort_column_index = 2;
 var sort_column_name = "artist";
 var sort_direction = "asc";
+var media_keys_ws;
 $(function () {
     html5_audio_player = document.getElementById("player");
     html5_audio_player.addEventListener("ended", play_next_song);
@@ -150,7 +151,62 @@ $(function () {
         }
         search_timeout = setTimeout(search_clear, 1000);
     });
+
+    if (window.MozWebSocket) {
+        window.WebSocket = window.MozWebSocket;
+    }
+
+    media_keys_connect();
+
+    // When we get data back from the server
+    media_keys_ws.onmessage = function (msg) {
+        // Set the status back to Idle to show we're done with the request
+        $("#ws_status").text("Idle");
+        // Parse the data
+        // var data = JSON.parse(msg.data);
+        switch (msg.data == "p") {
+            case "p":
+                media_play_pause();
+                break;
+            case "<":
+                play_prev_song();
+                break;
+            case ">":
+                play_next_song()
+                break;
+        }
+    }
+    media_keys_ws.onclose = function () {
+        $("#ws_status").text("Disconnected");
+    }
 });
+function media_play_pause() {
+    if (html5_audio_player.paused) {
+        html5_audio_player.play();
+    } else {
+        html5_audio_player.pause();
+    }
+}
+function media_keys_connect() {
+    media_keys_ws = new WebSocket("ws://127.0.0.1:8002/");
+    media_keys_ws.onopen = function () {
+        $("#ws_status").text("Connected");
+    }
+}
+function media_keys_disconnect() {
+    media_keys_ws.close();
+    $("#ws_status").text("Disconnected");
+}
+function toggle_media_keys() {
+    console.log(media_keys_ws.readyState);
+    if (media_keys_ws.readyState == window.WebSocket.OPEN) {
+        media_keys_disconnect();
+    } else if (media_keys_ws.readyState == window.WebSocket.CLOSED) {
+        media_keys_connect()
+    } else {
+        setTimeout(toggle_media_keys, 500);
+    }
+}
 var search_timeout;
 var current_search = "";
 var now_playing;
@@ -405,6 +461,10 @@ function play_song(id, same_playlist) {
             &nbsp;
             &nbsp;
         </h4>
+        &nbsp;
+        <a id="ws_status" href="javascript:toggle_media_keys()"></a>
+        &nbsp;
+        &nbsp;
         <div id="now_playing"></div>
         <span id="search">
             <span id="search_text"></span><span id="search_completion"></span>
