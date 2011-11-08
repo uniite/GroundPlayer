@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.shortcuts import render, render_to_response, get_object_or_404, redirect
-from ground_player.settings import MEDIA_SCAN_PATH
+from ground_player.settings import MEDIA_SCAN_PATH, MEDIA_BASE_URL
 import ujson
 from models import Song
 from tasks import ScanMediaTask
@@ -80,4 +80,4 @@ def stream_song(request, id):
     # on your music folder (ie. make WAV copies of all the FLACs)
     # That way, we still get to use all the FLAC metadata
     url = url.replace(".flac", ".wav")
-    return redirect("%s%s" % (MEDIA_HOST, url))
+    return redirect("%s%s" % (MEDIA_BASE_URL, url))
