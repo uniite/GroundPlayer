@@ -80,4 +80,4 @@ def stream_song(request, id):
     # on your music folder (ie. make WAV copies of all the FLACs)
     # That way, we still get to use all the FLAC metadata
     url = url.replace(".flac", ".wav")
-    return redirect("http://shoebox.local/music/%s" % url)
+    return redirect("%s%s" % (MEDIA_HOST, url))

@@ -162,4 +162,5 @@ BROKER_TRANSPORT = "django"
 
 # Where all the music is stored (for local scanning purposes)
 MEDIA_SCAN_PATH = "U:\\Music\\"
-
+# The base URL form which MEDIA_SCAN_PATH can be accessed over HTTP
+MEDIA_BASE_URL = "http://shoebox.local/music/"
