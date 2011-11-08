@@ -18,6 +18,8 @@ urlpatterns = patterns('',
     url(r'^songs/(\d+)/play/?$', 'audio.views.play_song'),
     url(r'^songs/(\d+)/stream/?$', 'audio.views.stream_song'),
 
+    (r'^accounts/login/', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
+
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 

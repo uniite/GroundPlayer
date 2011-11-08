@@ -7,18 +7,23 @@ from models import Song
 from tasks import ScanMediaTask
 from util import send_data, send_file
 import os
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def scan_media(request):
     ScanMediaTask.delay(MEDIA_SCAN_PATH)
     return HttpResponse("Started")
 
+@login_required
 def library(request):
     return render_to_response("library.html")
 
+@login_required
 def api_songs_count(request):
     return HttpResponse(Song.objects.all().count())
 
+@login_required
 def list_songs(request):
     cache_key = {"view": "audio.views.list_songs"}
     if "sort" in request.GET:
@@ -41,6 +46,7 @@ def list_songs(request):
         #cache.set(cache_key, content)
         return HttpResponse(content)
 
+@login_required
 def api_songs_list(request):
     query = Song.objects.all()
     if "sort" in request.GET:
@@ -64,14 +70,17 @@ def api_songs_list(request):
         "rows": songs
     }))
 
+@login_required
 def delete_songs(request):
     Song.objects.all().delete()
     return HttpResponse("Deleted all songs.")
 
+@login_required
 def play_song(request, id):
     song = get_object_or_404(Song, pk=id)
     return render_to_response("player.html", {"song": song})
 
+@login_required
 def stream_song(request, id):
     song = get_object_or_404(Song, pk=id)
     url = "/".join(song.file_path.replace(MEDIA_SCAN_PATH, "").split(os.path.sep))
